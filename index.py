@@ -24,7 +24,7 @@ def get_prompt():
         return(prompt)
 
 def get_story(prompt: str, system_prompt: str):
-        completion = st.session_state.client.chat.completions.create(model="gpt-3.5-turbo", # instruct should have faster generation times
+        completion = st.session_state.client.chat.completions.create(model="gpt-4-1106-preview", # instruct should have faster generation times
                                                   temperature=1.,
                                                   stream=False,
                                                   messages=[{"role": "system", "content": system_prompt},
@@ -56,17 +56,13 @@ def generate():
 
             # Get user prompt from elements
             prompt = get_prompt()
-            # st.write("Testing, remove later")
-            # st.write(prompt)
 
             # Get full story
             print("Generating story...")
-            system_prompt = "Je bent een schrijver van korte kinderverhaaltjes, je krijgt een korte bescrhijving van een verhaal en enkele hoofdrolspelers. Schrijf hier een kort kinderverhaal over in kindvriendelijke taal. Vermijd onderwerpen zoals seks, drugs, geweld en criminaliteit. Belangrijk: maak het verhaal niet te lang. Mik op ongeveer een 1000 characters (spaties en leestekens inbegrepen.)"
+            system_prompt = "Je bent een schrijver van kinderverhaaltjes, je krijgt een korte beschrijving van een verhaal en enkele hoofdrolspelers. Schrijf hier een kort kinderverhaal over in kindvriendelijke taal. Vermijd onderwerpen zoals seks, drugs, geweld en criminaliteit. Belangrijk: maak het verhaal niet te lang. Mik op ongeveer een 1500 characters (spaties en leestekens inbegrepen.)"
             story = ""
             with st.spinner("Verhaal genereren..."):
                 story = get_story(prompt, system_prompt)
-            # st.write("Testing, remove later")
-            # st.write(story)
 
             # Get concise story
             print("Summarizing story...")
@@ -75,9 +71,6 @@ def generate():
             with st.spinner("Verhaal samenvatten..."):
                 concise_story = get_story(story, system_prompt)
                 print(f'Concise story: {concise_story}')
-
-            # st.write("Testing, remove later")
-            # st.write(concise_story)
 
             # Get image
             print("Generating image...")
@@ -91,7 +84,6 @@ def generate():
             st.write(story)
 
             print('-----')
-            
 
             st.button("Clear", on_click=results.empty)
 
