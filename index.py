@@ -6,6 +6,8 @@ load_dotenv()
 if "client" not in st.session_state:
    st.session_state.client = OpenAI()
 
+if "generating_state" not in st.session_state:
+     st.session_state.generating_state = False
 
 def get_prompt():
         leads_list = [st.session_state[f"lead_{i}"] for i in range(1,st.session_state.lead_count+1)]
@@ -20,7 +22,7 @@ def get_prompt():
         return(prompt)
 
 def get_story(prompt: str, system_prompt: str):
-        completion = st.session_state.client.chat.completions.create(model="gpt-3.5-turbo",
+        completion = st.session_state.client.chat.completions.create(model="gpt-3.5-turbo", # instruct should have faster generation times
                                                   temperature=1.,
                                                   stream=False,
                                                   messages=[{"role": "system", "content": system_prompt},
@@ -42,28 +44,62 @@ def get_image(story:str):
     return image_url
 
 def generate():
-    print("Starting generation chain...")
+    st.session_state.generating = True
+    try:
 
-    # Get user prompt from elements
-    prompt = get_prompt()
-    st.write(prompt)
+        results = st.empty()
 
-    ## Get full story
-    print("Generating story...")
-    system_prompt = "Jij bent een schrijver van kinderverhaaltjes. Je krijgt een korte beschrijving van een verhaal, het aantal hoofdrolspelers en hun namen. Schrijf hier een verhaal over in kindvriendelijke taal en taal die de content-policy van Dall-E respecteert door thema's zoals geweld, sex, drugs en criminaliteit te vermijden."
-    story = get_story(prompt, system_prompt)
-    st.write(story)
+        with results.container():
+            print("Starting generation chain...")
 
-    # Get concise story
-    print("Summarizing story...")
-    system_prompt = "Vat dit kinderverhaal samen naar zijn essentie, het moet de vorm hebben van een prompt voor Dall-E 2/3. Gebruik kindvriendelijke taal. Probeer het samen te vatten in ongeveer 900 characters (inclusief spaties en leestekens). Heel belangrijk: NIET LANGER DAN 1000 CHARACTERS."
-    concise_story = get_story(story, system_prompt)
-    st.write(concise_story)
-    
-    # Get image
-    print("Generating image...")
-    image_url = get_image(concise_story)
-    st.image(image_url)
+            # Get user prompt from elements
+            prompt = get_prompt()
+            # st.write("Testing, remove later")
+            # st.write(prompt)
+
+            # Get full story
+            print("Generating story...")
+            system_prompt = "Je bent een schrijver van korte kinderverhaaltjes, je krijgt een korte bescrhijving van een verhaal en enkele hoofdrolspelers. Schrijf hier een kort kinderverhaal over in kindvriendelijke taal. Vermijd onderwerpen zoals seks, drugs, geweld en criminaliteit. Belangrijk: maak het verhaal niet te lang. Mik op ongeveer een 1000 characters (spaties en leestekens inbegrepen.)"
+            story = ""
+            with st.spinner("Verhaal genereren..."):
+                story = get_story(prompt, system_prompt)
+            # st.write("Testing, remove later")
+            # st.write(story)
+
+            # Get concise story
+            print("Summarizing story...")
+            system_prompt = "Beschrijf dit kinderverhaal in kernwoorden, bekijk het als een hele beknopte samenvatting die als input gebruikt wordt als prompt voor DALL-E 3. Heel belangrijk: NIET LANGER DAN 1000 CHARACTERS."
+            concise_story = ""
+            with st.spinner("Verhaal samenvatten..."):
+                concise_story = get_story(story, system_prompt)
+                print(f'Concise story: {concise_story}')
+
+            # st.write("Testing, remove later")
+            # st.write(concise_story)
+
+            # Get image
+            print("Generating image...")
+            image_url = ""
+            with st.spinner("Foto genereren..."):
+                image_url = get_image(concise_story)
+                print(f'Image url: {image_url}')
+
+            st.success("Klaar met genereren!")
+            st.image(image_url)
+            st.write(story)
+
+            print('-----')
+            
+
+            st.button("Clear", on_click=results.empty)
+
+    # Catch any exception to show to person resposible on the floor
+    except Exception as error:
+         st.error(error)
+
+    finally:
+         st.session_state.generating = False
+
 
 # Center image using columns
 image_url = "https://www.uhasselt.be/media/kzfjh2ll/50-jaar-uhasselt.png"
