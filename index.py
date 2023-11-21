@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 if "client" not in st.session_state:
-   st.session_state.client = OpenAI()
+   st.session_state.client = OpenAI(
+        api_key=st.secrets["OPENAI_API_KEY"]
+   )
 
 if "generating_state" not in st.session_state:
      st.session_state.generating_state = False
