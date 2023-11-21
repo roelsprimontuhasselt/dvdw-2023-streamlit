@@ -45,8 +45,14 @@ def get_image(story:str):
     image_url = response.data[0].url
     return image_url
 
+def clear_inputs():
+     st.session_state.description = ""
+     st.session_state.lead_count = 1
+     st.session_state.lead_1 = ""
+     for i in range(1, 0):
+          st.session_state[f"lead_{i}"] = ""
+
 def generate():
-    st.session_state.generating = True
     try:
 
         results = st.empty()
@@ -92,7 +98,7 @@ def generate():
          st.error(error)
 
     finally:
-         st.session_state.generating = False
+         clear_inputs()
 
 
 # Center image using columns
